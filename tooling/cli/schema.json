@@ -2475,6 +2475,17 @@
               "$ref": "#/definitions/DisabledCspModificationKind"
             }
           ]
+        },
+        "dangerousExternalCommandAccess": {
+          "description": "Allow external urls to send command to tauri\n\nBy default, external urls do not have access to `window.__TAURI__`, this means they cannot communicate with the commands defined in rust. This prevents attacks where an externally loaded application would be compromised and could start executing commands on the device of the user.\n\nThis configuration allows a set of external urls to have access to the Tauri commands. Wildcards patterns are accepted and can be used to allow either all domains or a subset of subdomains for a main domain.\n\n**WARNING:** Only use this option if you either have internal checks against malicious external sites or you can trust the allowed external sites. You application might be vulnerable to dangerous Tauri command related attacks otherwise.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ExternalCommandAccess"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -2526,6 +2537,44 @@
           }
         }
       ]
+    },
+    "ExternalCommandAccess": {
+      "description": "The configuration for external command access",
+      "type": "object",
+      "required": [
+        "scope"
+      ],
+      "properties": {
+        "scope": {
+          "description": "Allows the given scopes to access Tauri commands",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExternalCommandAccessScope"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExternalCommandAccessScope": {
+      "description": "One external command access scope",
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "name": {
+          "description": "Descriptive name for the current scope",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "description": "Url to allow, it can contain wildcards",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "UpdaterConfig": {
       "description": "The Updater configuration object.",

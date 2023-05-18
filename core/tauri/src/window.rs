@@ -1265,18 +1265,6 @@ impl<R: Runtime> Window<R> {
   /// Handles this window receiving an [`InvokeMessage`].
   pub fn on_message(self, payload: InvokePayload) -> crate::Result<()> {
     let manager = self.manager.clone();
-    let current_url = self.url();
-    let config_url = manager.get_url();
-    #[allow(unused_mut)]
-    let mut is_local = config_url.make_relative(&current_url).is_some();
-    #[cfg(feature = "isolation")]
-    if let crate::Pattern::Isolation { schema, .. } = &self.manager.inner.pattern {
-      if current_url.scheme() == schema
-        && current_url.domain() == Some(crate::pattern::ISOLATION_IFRAME_SRC_DOMAIN)
-      {
-        is_local = true;
-      }
-    }
 
     match payload.cmd.as_str() {
       "__initialized" => {
@@ -1292,13 +1280,6 @@ impl<R: Runtime> Window<R> {
         );
         let resolver = InvokeResolver::new(self, payload.callback, payload.error);
         let invoke = Invoke { message, resolver };
-
-        if !is_local {
-          invoke
-            .resolver
-            .reject("Remote URLs are not allowed to access the IPC");
-          return Ok(());
-        }
 
         if let Some(module) = &payload.tauri_module {
           crate::endpoints::handle(
