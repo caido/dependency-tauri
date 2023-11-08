@@ -130,41 +130,20 @@ impl Scope {
 
   pub(crate) fn remote_access_for<R: Runtime>(
     &self,
-    window: &Window<R>,
-    url: &Url,
+    _window: &Window<R>,
+    _url: &Url,
   ) -> Result<RemoteDomainAccessScope, RemoteAccessError> {
-    let mut scope = None;
-    let mut found_scope_for_window = false;
-    let mut found_scope_for_domain = false;
-    let label = window.label().to_string();
-
-    for s in &*self.remote_access.lock().unwrap() {
-      #[allow(unused_mut)]
-      let mut matches_window = s.windows.contains(&label);
-
-      let matches_scheme = s
-        .scheme
-        .as_ref()
-        .map(|scheme| scheme == url.scheme())
-        .unwrap_or(true);
-
-      let matches_domain =
-        matches_scheme && url.domain().map(|d| d == s.domain).unwrap_or_default();
-      found_scope_for_window = found_scope_for_window || matches_window;
-      found_scope_for_domain = found_scope_for_domain || matches_domain;
-      if matches_window && matches_domain && scope.is_none() {
-        scope.replace(s.clone());
-      }
-    }
-
-    if let Some(s) = scope {
-      Ok(s)
-    } else {
-      Err(RemoteAccessError {
-        matches_window: found_scope_for_window,
-        matches_domain: found_scope_for_domain,
-      })
-    }
+    // CAIDO:
+    //  - Allow all external links for all windows
+    //  - Don't allow plugins access
+    //  - Don't allow tauri api access
+    Ok(RemoteDomainAccessScope {
+      scheme: None,
+      domain: String::new(),
+      windows: Vec::new(),
+      plugins: Vec::new(),
+      enable_tauri_api: false,
+    })
   }
 }
 
